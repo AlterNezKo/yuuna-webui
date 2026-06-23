@@ -84,7 +84,7 @@ systemctl --user enable --now podman-restart.service
 ```
 
 ---
-## Fase 3: Inyección del Pipeline (Bypass de Restricciones)
+## Fase 3: Inyección del Bypass de Restricciones
 
 Para garantizar libertad creativa total en narrativas complejas y evadir los bloqueos de contenido de la API estándar de Google, se implementa un Manifold Pipe comunitario que intercepta las peticiones y fuerza políticas de seguridad permisivas.
 
@@ -153,3 +153,20 @@ tar -xzvf yuna_haven_pre_update_AÑO-MES-DIA.tar.gz -C ~/.local/yuna-haven-ai
 
 > Es indispensable vaciar la carpeta `data` antes de la extracción (el paso 2). El comando `tar` sobrescribe archivos existentes, pero no elimina archivos nuevos. Si la actualización fallida generó nuevos esquemas, tablas o archivos temporales, estos sobrevivirán a la extracción y corromperán la versión antigua al intentar arrancar.
 
+## Documentación Extendida y Siguientes Pasos
+
+Este manual cubre el despliegue indispensable para poner en marcha el entorno. Para configuraciones avanzadas, resolución de problemas y detalles profundos sobre la infraestructura técnica, consulte la documentación adjunta en este repositorio:
+
+* **Arquitectura (Próximamente)**: Detalles sobre el anclaje local y la mitigación de telemetría.
+* **Resolución de Problemas (Próximamente)**: Guía de supervivencia para errores comunes.
+
+## 🏆 Agradecimientos y Atribuciones
+
+Yuna Haven AI es un marco de referencia construido sobre los hombros de gigantes del código abierto y la comunidad de inteligencia artificial:
+
+* **[Open WebUI](https://github.com/open-webui/open-webui):** Por proporcionar la interfaz gráfica de usuario y la arquitectura de contenedores más robusta y versátil para LLMs locales y remotos.
+* **[Google Gemini Pipeline](https://openwebui.com/posts/google_gemini_5a64dbc0):** Al creador del *script* original en el hub de Open WebUI, cuya lógica de interceptación hace posible el bypass de políticas restrictivas y la activación del razonamiento transparente (*Chain of Thought*).
+
+## 📄 Licencia
+
+Este proyecto y su documentación se distribuyen bajo la licencia **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**. Eres libre de compartir y adaptar este material, siempre y cuando otorgues el crédito correspondiente y distribuyas tus contribuciones bajo la misma licencia.
