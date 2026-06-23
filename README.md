@@ -4,6 +4,7 @@
 Este documento detalla la arquitectura, el despliegue y los protocolos de mantenimiento para un entorno local de asistencia de IA multiproposito, pero preparada para la asistencia literaria sin tabues. El sistema está diseñado para operar de forma privada mediante Podman en modo Rootless, integrando la API de Google Gemini omitiendo las restricciones comerciales de contenido mediante políticas permisivas de seguridad.
 
 > ⚠️ **Nota de Configuración:** Este manual detalla un despliegue optimizado para un entorno de producción personal. Las instrucciones están alineadas con los estándares oficiales de Open WebUI, reduciendo la arquitectura a los ajustes mínimos indispensables para garantizar seguridad, portabilidad y una puesta en marcha en pocos minutos. Para modificaciones avanzadas, consulte la documentación oficial de los proyectos base.
+
 > ⚠️ **Censura en Gemini:** Las limitaciones conocidas forman parte de un filtro hecho por Google para evitar el mal uso de su plataforma. Sin embargo, a nivel de API es posible remover los filtros de protección que hacen a la IA *políticamente correcta*, lo que permite la generación de contenido muy sugerente o con violencia de alto grado, pero aun así **NO podrás crear contenido para adultos.** Los bloqueos de narrativas o contextos NSFW explícitos están vetados a nivel de código del modelo.
 
 ## ¿Por qué Yuna Haven?
