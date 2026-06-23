@@ -1,5 +1,5 @@
 # 📖 Manual de Despliegue: Yuna Haven AI 
-**Quia de inicio rápido para una instancia de Open WebUI + Google Gemini sin censura**
+**Guía de inicio rápido para una instancia de Open WebUI + Google Gemini sin censura**
 
 Este documento detalla la arquitectura, el despliegue y los protocolos de mantenimiento para un entorno local de asistencia de IA multiproposito, pero preparada para la asistencia literaria sin tabues. El sistema está diseñado para operar de forma privada mediante Podman en modo Rootless, integrando la API de Google Gemini omitiendo las restricciones comerciales de contenido mediante políticas permisivas de seguridad.
 
