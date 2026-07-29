@@ -1,29 +1,29 @@
-# 📖 Manual de Despliegue: Yuna Haven AI 
-**Guía de inicio rápido para una instancia de Open WebUI + Google Gemini sin censura**
+# Yuuna WebUI 
+**Un marco de implementación fácil de usar y libre de censura, impulsado por Open WebUI y Podman**
 
-Este documento detalla la arquitectura, el despliegue y los protocolos de mantenimiento para un entorno local de asistencia de IA multiproposito, pero preparada para la asistencia literaria sin tabues. El sistema está diseñado para operar de forma privada mediante Podman en modo Rootless, integrando la API de Google Gemini omitiendo las restricciones comerciales de contenido mediante políticas permisivas de seguridad.
+Este documento detalla la arquitectura, el despliegue y los protocolos de mantenimiento para un entorno local de asistencia de IA multiproposito, preparada para la asistencia literaria sin tabues. El sistema está diseñado para operar de forma privada mediante Podman en modo Rootless, integrando la API de OpenRouter para acceder a Google Gemini evadiendo las restricciones comerciales y regionales.
 
 > ⚠️ **Nota de Configuración:** Este manual detalla un despliegue optimizado para un entorno de producción personal. Las instrucciones están alineadas con los estándares oficiales de Open WebUI, reduciendo la arquitectura a los ajustes mínimos indispensables para garantizar seguridad, portabilidad y una puesta en marcha en pocos minutos. Para modificaciones avanzadas, consulte la documentación oficial de los proyectos base.
 
-> ⚠️ **Censura en Gemini:** Las limitaciones conocidas forman parte de un filtro hecho por Google para evitar el mal uso de su plataforma. Sin embargo, a nivel de API es posible remover los filtros de protección que hacen a la IA *políticamente correcta*, lo que permite la generación de contenido muy sugerente o con violencia de alto grado, pero aun así **NO podrás crear contenido para adultos.** Los bloqueos de narrativas o contextos NSFW explícitos están vetados a nivel de código del modelo.
+> ⚠️ **Censura en Gemini:** Las limitaciones conocidas forman parte de un filtro hecho por Google para evitar el mal uso de su plataforma. Sin embargo, a nivel de API estos filtros de protección que hacen a la IA *políticamente correcta* vienen inhabilitados por defecto, lo que permite la generación de contenido muy sugerente o con violencia de alto grado. Aun así **NO podrás crear contenido para adultos.** Los bloqueos de narrativas o contextos NSFW explícitos están vetados a nivel de código del modelo. 
 
-## ¿Por qué Yuna Haven?
-**Yuna Haven AI** nace de la necesidad de crear un entorno de asistencia narrativa diseñado especialmente para explorar géneros controvertidos sin las barreras de la censura algorítmica empujadas por las BigTech, sin dejar de ser una herramienta muy poderosa de uso general. Una lluvia de ideas durante creación de mundos ricos, arquitecturas de sociedades distopicas y escenarios viscerales en tiempos olvidados exigen herramientas que actúen como verdaderos copilotos, no hacer el papel de un policía de la moral que te dice cuando algo fue demasiado.
+## ¿Por qué Yuuna WebUI?
+Nace de la necesidad de crear un entorno de asistencia narrativa diseñado especialmente para explorar géneros controvertidos sin las barreras de la censura algorítmica empujadas por las BigTech, sin dejar de ser una herramienta muy poderosa de uso general a una fracción del costo de planes como *Gemini AI Pro, SuperGrok o ChatGPT Pro*
+
+Una lluvia de ideas durante creación de mundos ricos, arquitecturas de sociedades distopicas y escenarios viscerales en tiempos olvidados exigen herramientas que actúen como verdaderos copilotos, no hacer el papel de un policía de la moral que te dice cuando algo fue demasiado.
 
 *«—¿Quien está escribiendo la historia? ¿Tu o yo?»*
 
 Podrías decir que existen modelos por ahí que dan esa libertad que tanto estoy buscando... o mejor aún, sugerir alojar mi propio modelo de lenguaje sin censura en local. Y aunque técnicamente tienes razón, no es tan simple.
 
-Si bien existen modelos Open Source excelentes como LLama o los más recientes de la familia  Qwen, hay que ser honestos; no estan a la la altura de de lo que Gemini o ChatGPT pueden ofrecer, no en lo que respecta a capacidad de razonamiento. Cuando quieres escribir más allá de cierto nivel, esa limitación *se nota.* 
+Si bien existen modelos Open Source excelentes como LLama o los más recientes de la familia  Qwen, hay que ser honestos; de momento no están a la la altura de de lo que Gemini o ChatGPT pueden ofrecer, no en lo que respecta a capacidad de razonamiento. Cuando quieres escribir más allá de cierto nivel o resolver un problema complejo, esa limitación *se nota.* 
 
-**¿Por que Gemini?**
-Claude y ChatGPT son un poco mejores al redactar por su cuenta, pero ambos son demasiado *mojigatos*, Grok es 0% filtros y te da libertad absoluta, pero es pésimo estructurando ideas. Gemini esta cerca del nivel de Claude en razonamiento profundo y es lo suficientemente permisivo, aunque no al nivel de Grok. De todos este es el más flexible por diseño. Y vamos, el objetivo es que la IA te de ideas, no que te haga el trabajo.
+**¿Por que recomiendo Gemini?**
+Claude y ChatGPT son un poco mejores en ese aspecto, pero ambos son demasiado *mojigatos*, Grok por su parte es 0% filtros y te da libertad absoluta, pero es pésimo estructurando ideas. Gemini esta cerca del nivel de Claude en razonamiento profundo y es lo suficientemente permisivo. De todos este es el más flexible por diseño siendo tambien el más económico del lado occidental. Y vamos, el objetivo es que la IA te asista, no que te haga el trabajo.
 
-Más allá de la filosofía, para garantizar este nivel de libertad, la arquitectura del proyecto se sostiene sobre dos pilares técnicos innegociables:
+Más allá de la filosofía, para garantizar este nivel de libertad, la arquitectura del proyecto se sostiene sobre un único concepto primordial.
 
-* **Bypass de Políticas:** La integración de pipelines dinámicos intercepta y reescribe las cabeceras de las peticiones hacia la API comercial, forzando un umbral de seguridad permisivo que devuelve el control *casi* absoluto de la generación de texto a quien escribe.
-
-* **Soberanía y Privacidad:** El entorno se ejecuta íntegramente en el espacio del usuario sin requerir privilegios de administrador, minimizando la superficie de ataque al tiempo que mantienes el sistema anfitrión limpio. Además, en la web de Google, tus borradores y todo el historial de tu mundo viven en sus servidores y se exponen a su telemetría.
+* **Soberanía y Privacidad:** El entorno se ejecuta íntegramente en tu computador, Gemini o cualquier IA que uses solo es un motor que procesa tu consulta y devuelve una respuesta. En sus respectivos portales web , tu historial vive en sus servidores y se usan activamente para entrenar y mejorar sus modelos. Ellos ya tienen suficientes datos.
 
 *«—¿Qué más necesitas saber?»*
 
@@ -166,6 +166,7 @@ Yuna Haven AI es un marco de referencia construido sobre los hombros de gigantes
 
 * **[Open WebUI](https://github.com/open-webui/open-webui):** Por proporcionar la interfaz gráfica de usuario y la arquitectura de contenedores más robusta y versátil para LLMs locales y remotos.
 * **[Google Gemini Pipeline](https://openwebui.com/posts/google_gemini_5a64dbc0):** Al creador del *script* original en el hub de Open WebUI, cuya lógica de interceptación hace posible el bypass de políticas restrictivas y la activación del razonamiento transparente (*Chain of Thought*).
+* **[]()
 
 ## 📄 Licencia
 
