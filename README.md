@@ -32,40 +32,40 @@ Más allá de la filosofía, para garantizar este nivel de libertad, la arquitec
 Antes de iniciar el despliegue, asegúrese de contar con los siguientes elementos:
 
 * **Sistema Operativo:** Entorno Linux con el motor de contenedores Podman instalado y configurado.
-* **Credenciales de API:** Una clave de API activa de Google Gemini, generada desde el panel de [Google AI Studio](https://ai.google.dev/).
-* **Firma de Seguridad:** Una cadena de texto segura y aleatoria de 32 bytes para la variable `WEBUI_SECRET_KEY`. Puedes generarla localmente ejecutando:
+* **Credenciales de API:** Una clave de API activa de OpenRouter.
+* **Firma de Seguridad:** Una cadena de texto segura de 32 bytes para la variable `WEBUI_SECRET_KEY`. Puedes generarla localmente ejecutando:
 ```bash
 openssl rand -hex 32
 ```
 
 ---
-## Fase 1: Despliegue de la Infraestructura Base
+# Despliegue de la Infraestructura Base
 
-El despliegue estándar expone los puertos en la interfaz abierta `0.0.0.0`, lo que permite que cortafuegos agresivos o políticas de enrutamiento de clientes VPN intercepten el tráfico local, provocando fallos de pasarela (El dichoso error 504 Gateway Timeout con el que me tropecé un par de veces). Para mitigar esto, el contenedor se ancla estrictamente a la interfaz de loopback local `127.0.0.1`. Esto encapsula el tráfico dentro del núcleo del sistema operativo, garantizando el acceso ininterrumpido independientemente del estado de la red externa.
+El despliegue estándar expone los puertos en la interfaz abierta `0.0.0.0`, lo que permite que cortafuegos agresivos o políticas de enrutamiento de clientes VPN intercepten el tráfico local, provocando fallos de pasarela (El dichoso error 504 Gateway Timeout con el que me tropecé un par de veces). Para mitigar esto, el contenedor se ancla a la interfaz de loopback local `127.0.0.1`. Esto encapsula el tráfico dentro del núcleo del sistema operativo, garantizando el acceso ininterrumpido independientemente del estado de la red externa.
 
 Asimismo, se omite el uso de la etiqueta `:main` o `:latest` debido a la volatilidad de la base de código de Open WebUI. Fijar una versión específica protege el entorno de rupturas imprevistas durante las migraciones automáticas de la base de datos.
 
-**Comando de construcción e inicio:**
+## Comando de construcción e inicio:
 
 ```bash
 podman run -d \
   --replace \
   -p 127.0.0.1:3000:8080 \
   -e WEBUI_SECRET_KEY="TU_KEY_GENERADA_EN_PREQUISITOS" \
-  -v ~/.local/yuna-haven-ai/data:/app/backend/data \
-  --name open-webui \
+  -v ~/.local/yuuna-webui/data:/app/backend/data \
+  --name yuuna-webui \
   --restart always \
   ghcr.io/open-webui/open-webui:<COLOCA_AQUI_LA_VERSION_ESTABLE>
 
 ```
 
->  **Control de Versiones:** Sustituya el marcador `<COLOCA_AQUI_LA_VERSION_ESTABLE>` con el identificador de la última versión oficial (por ejemplo, `v0.9.6`). La ejecución directa del comando manteniendo el marcador provocará un fallo sintáctico intencional.
->  **Persistencia de Datos:** La adopción de la ruta oculta `~/.local/yuna-haven-ai/data` se alinea con la especificación del estándar XDG para el almacenamiento de datos aislados de usuario. Esta práctica previene la contaminación del directorio raíz del usuario y emula políticas limpias de entornos de producción. Si prefiere visibilidad directa en el sistema de archivos, puede modificar el origen del volumen (`-v`) hacia cualquier ruta absoluta de su preferencia antes de ejecutar el contenedor.
+>  **Control de Versiones:** Sustituya el marcador `<COLOCA_AQUI_LA_VERSION_ESTABLE>` con el identificador de la última versión oficial, por ejemplo, `v0.9.6`.
+>  **Persistencia de Datos:** La adopción de la ruta oculta `~/.local/yuuna-webui/data` se alinea con la especificación del estándar XDG para el almacenamiento de datos aislados de usuario. Esta práctica previene la contaminación del directorio raíz del y emula políticas limpias de entornos de producción. Si prefieres visibilidad directa en el sistema de archivos, puede modificar el origen del volumen (`-v`) hacia cualquier ruta absoluta de su preferencia antes de ejecutar el contenedor.
 
 
 ---
 
-## Fase 2: Persistencia del Sistema (opcional)
+##  Persistencia del Sistema (opcional)
 
 Dado que Podman opera sin un daemon maestro en el espacio del usuario, es necesario delegar la responsabilidad del arranque a Systemd para que el servicio sobreviva a los reinicios del hardware. Este paso es opcional, si lo saltas, será necesario levantar el contenedor manualmente antes de usarlo.
 
@@ -84,7 +84,7 @@ systemctl --user enable --now podman-restart.service
 ```
 
 ---
-## Fase 3: Inyección del Bypass de Restricciones
+## Inyección del Bypass de Restricciones
 
 Para garantizar libertad creativa total en narrativas complejas y evadir los bloqueos de contenido de la API estándar de Google, se implementa un Manifold Pipe comunitario que intercepta las peticiones y fuerza políticas de seguridad permisivas.
 
@@ -105,7 +105,7 @@ Las Valves actúan como variables de entorno específicas para la función. Haga
 
 ---
 
-## Fase 4: Optimización de Cuota y Prevención de Rate Limits
+## Optimización de uso de Tokens
 
 Por defecto, Open WebUI ejecuta tareas concurrentes en segundo plano para mejorar la experiencia de usuario. Sin embargo, estas automatizaciones envían ráfagas de peticiones invisibles que agotan velozmente los límites restrictivos de las capas gratuitas, resultando en bloqueos por saturación `429 RESOURCE_EXHAUSTED`. o inflan el consumo de tokens en entornos facturables.
 
@@ -119,7 +119,7 @@ Navegue a **Panel de Administración > Ajustes > Interfaz** (*Settings > Interfa
 * Generación de Etiquetas (*Tags Generation*).
 
 ---
-## Fase 5: Protocolo de Mantenimiento y Backups
+## Protocolo de Mantenimiento y Backups
 
 Dada la alta cadencia de desarrollo de Open WebUI, las migraciones estructurales de la base de datos, presenta un riesgo inherente de corrupción. **La regla de oro de esta infraestructura es jamás ejecutar una actualización sin un respaldo previo.**
 
@@ -128,39 +128,39 @@ Con el contenedor detenido, genere un tarball que congele el estado exacto de su
 
 ```bash
 podman stop open-webui
-tar -czvf yuna_haven_pre_update_$(date +%F).tar.gz -C ~/.local/yuna-haven-ai data
+tar -czvf yuuna_webui_pre_update_$(date +%F).tar.gz -C ~/.local/yuuna-webui data
 
 ```
 
 **2. Proceso de Actualización Segura:**
 
 * **Cuarentena:** Espere al menos 7 días tras el lanzamiento de una nueva Release oficial para evitar bugs de día cero.
-* **Modificación:** Edite el comando original de la **Fase 1**, cambiando la etiqueta de la imagen a la nueva versión confirmada.
+* **Modificación:** Edite el comando de construcción, cambiando la etiqueta de la imagen a la nueva versión.
 * **Despliegue:** Ejecute el comando. La bandera `--replace` se encargará automáticamente de destruir el contenedor obsoleto y levantar el nuevo conectándolo a sus datos.
 
 **3. Protocolo de Rollback En caso de fallo crítico:**
 Si la actualización corrompe el sistema, la mejor solución es borrar todo, rehacer el contenedor y restaurar la copia de seguridad.
 ```bash
 # 1. Aniquilar el contenedor corrupto
-podman rm -f open-webui
+podman rm -f yuuna-webui
 
 # 2. Purgar el directorio de datos contaminado
-rm -rf ~/.local/yuna-haven-ai/data/*
+rm -rf ~/.local/yuuna-webui/data/*
 
 # 3. Extraer la cápsula de respaldo (Sustituya el nombre del archivo con su fecha)
-tar -xzvf yuna_haven_pre_update_AÑO-MES-DIA.tar.gz -C ~/.local/yuna-haven-ai
+tar -xzvf yuna_webui_pre_update_AÑO-MES-DIA.tar.gz -C ~/.local/yuuna-webui
 ```
 
 > Es indispensable vaciar la carpeta `data` antes de la extracción (el paso 2). El comando `tar` sobrescribe archivos existentes, pero no elimina archivos nuevos. Si la actualización fallida generó nuevos esquemas, tablas o archivos temporales, estos sobrevivirán a la extracción y corromperán la versión antigua al intentar arrancar.
 
-## Documentación Extendida y Siguientes Pasos
+# Documentación Extendida y Siguientes Pasos
 
 Este manual cubre el despliegue indispensable para poner en marcha el entorno. Para configuraciones avanzadas, resolución de problemas y detalles profundos sobre la infraestructura técnica, consulte la documentación adjunta en este repositorio:
 
 * **Arquitectura (Próximamente)**: Detalles sobre el anclaje local y la mitigación de telemetría.
 * **Resolución de Problemas (Próximamente)**: Guía de supervivencia para errores comunes.
 
-## 🏆 Agradecimientos y Atribuciones
+# Agradecimientos y Atribuciones
 
 Yuna Haven AI es un marco de referencia construido sobre los hombros de gigantes del código abierto y la comunidad de inteligencia artificial:
 
@@ -168,6 +168,6 @@ Yuna Haven AI es un marco de referencia construido sobre los hombros de gigantes
 * **[Google Gemini Pipeline](https://openwebui.com/posts/google_gemini_5a64dbc0):** Al creador del *script* original en el hub de Open WebUI, cuya lógica de interceptación hace posible el bypass de políticas restrictivas y la activación del razonamiento transparente (*Chain of Thought*).
 * **[]()
 
-## 📄 Licencia
+##  Licencia
 
 Este proyecto y su documentación se distribuyen bajo la licencia **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**. Eres libre de compartir y adaptar este material, siempre y cuando otorgues el crédito correspondiente y distribuyas tus contribuciones bajo la misma licencia.
