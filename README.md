@@ -67,6 +67,22 @@ Cuando el script finalice y veas el mensaje de éxito, espera al menos 1 minuto 
 
 * **URL de acceso:** `http://127.0.0.1:3000`
 
+### Auto-arranque
+
+Una vez que el script finaliza, Yuuna WebUI estará corriendo y listo para configurarse. Sin embargo, dado que utilizamos Podman sin privilegios de administrador, el contenedor no se iniciará automáticamente si reinicias tu computadora. Para levantar el entorno cuando lo necesites, utiliza:
+
+```bash
+podman start yuuna-webui
+```
+Si tu equipo cuenta con recursos limitados, 8 GB de RAM o menos, recomiendo mantener este comportamiento. De ese modo enciendes tu entorno solo cuando realmente vayas a usarlo.
+
+Cuando necesites liberar memoria para otras aplicaciones, puedes detener el contenedor limpiamente con:
+
+```bash
+podman stop yuuna-webui
+```
+___
+
 ### Copias de Seguridad y Restauración
 
 Open WebUI recibe actualizaciones frecuentes. Se recomienda encarecidamente realizar una copia de seguridad antes de cada actualización.
