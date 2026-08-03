@@ -37,6 +37,7 @@ echo "Descargando la versión $VERSION y levantando Yuuna WebUI Core..."
 podman run -d \
   --name yuuna-webui \
   --replace \
+  --pull=always \
   -p 127.0.0.1:3000:8080 \
   --env-file "$ENV_FILE" \
   -v "$STORAGE_LOCATION/data:/app/backend/data" \
