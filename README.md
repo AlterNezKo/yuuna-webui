@@ -11,11 +11,18 @@
 
 **Un framework de despliegue ágil, seguro y optimizado para Open WebUI**
 
+___
+
+
+> Repositorio canonico: [ Yuuna WebUI en GitLab](https://gitlab.com/AlterNezKo/yuuna-webui)
+> -- El repositorio de GitHub es un espejo de solo lectura.
+
+___
 <br>
 
 </div>
 
-Yuuna WebUI es una **arquitectura de referencia**. Está diseñado para ofrecer una configuración rápida y lista para usar de Open WebUI, concebida mediante el pulido de sus recomendaciones oficiales bajo criterio personal. Dando lugar a una plataforma resiliente enfocada en la privacidad y estabilidad de sus componentes.
+**Yuuna WebUI** es una arquitectura de referencia. Está diseñado para ofrecer una configuración rápida y lista para usar de Open WebUI, concebida mediante el pulido de sus recomendaciones oficiales bajo criterio personal. Dando lugar a una plataforma resiliente enfocada en la privacidad y estabilidad de sus componentes.
 
 Este proyecto nace para facilitar un entorno de asistencia multipropósito evitando las restricciones de las interfaces comerciales y sus elevados precios, con la ventaja de que todo tu historial permanece en tu maquina y no se usa para entrenar sus modelos.
 
