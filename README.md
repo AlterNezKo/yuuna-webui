@@ -22,136 +22,113 @@ ___
 
 </div>
 
-**Yuuna WebUI** es una arquitectura de referencia. Está diseñado para ofrecer una configuración rápida y lista para usar de Open WebUI, concebida mediante el pulido de sus recomendaciones oficiales bajo criterio personal. Dando lugar a una plataforma resiliente enfocada en la privacidad y estabilidad de sus componentes.
+Yuuna WebUI es una herramienta de gestión diseñada para desplegar Open WebUI de forma rápida, privada y lista para usar. Nace de pulir las recomendaciones oficiales bajo un enfoque práctico: ofrecer una plataforma resiliente que funcione sin fricción tanto en tu equipo personal como en un servidor propio.
 
-Este proyecto nace para facilitar un entorno de asistencia multipropósito evitando las restricciones de las interfaces comerciales y sus elevados precios, con la ventaja de que todo tu historial permanece en tu maquina y no se usa para entrenar sus modelos.
+Su objetivo es facilitarte un entorno de asistencia multipropósito sin las restricciones ni las limitaciones de las interfaces comerciales, con la garantía de que tus conversaciones, documentos y configuraciones permanecen bajo tu control.
 
 ### Características Principales
 
-* **Despliegue Seguro:** Mayor seguridad al estar basado en Podman Rootless, y con un script automatizado de despliegue y actualización.
-* **Red Aislada:** Configurado para apuntar explícitamente al loopback local, eludiendo fluctuaciones de red y aumentando la fiabilidad de la interfaz.
-* **Privacidad Absoluta:** Tus datos, prompts y configuraciones viven únicamente en tu almacenamiento local.
-* **Enfoque Creativo:** Preparado para emular funciones avanzadas como los "Gems" de Gemini y cuadernos de investigación estilo NotebookLLM (Documentación en camino).
+* **Despliegue Seguro y Verificado:** Basado en contenedores Podman Rootless, con comprobación automática de dependencias y healthcheck.
+* **Gestor CLI Integrado** Incluye su propia utilidad de línea de comandos para actualizar, iniciar, detener, respaldar o cambiar de versión con un solo comando.
+* **Red Flexible (Local o Cloud):** Aislado por defecto en el loopback local `127.0.0.1` para máxima privacidad y estabilidad, con opción de despliegue abierto a tu red local o servidores en la nube.
+* **Privacidad Absoluta:** Todos tus chats, prompts, credenciales y respaldos viven únicamente en tu almacenamiento local `~/.local/yuuna-webui/`.
 
-## Inicio Rapido
+---
 
-### Prerrequisitos 
+## Inicio Rápido
+
+### Prerrequisitos
+
 #### Linux
 
-* **Solus**
+* **Solus:**
 ```bash
-sudo eopkg it podman openssl curl
+sudo eopkg it podman openssl curl tar
 ```
 * **Debian / Ubuntu / Linux Mint:**
 ```bash
-sudo apt update && sudo apt install podman openssl curl -y
+sudo apt update && sudo apt install podman openssl curl tar
 ```
 * **Fedora / Rocky Linux:**
 ```bash
-sudo dnf install podman openssl curl -y
+sudo dnf install podman openssl curl tar
 ```
 * **Arch Linux / CachyOS / Manjaro:**
 ```bash
-sudo pacman -Syu podman openssl curl
+sudo pacman -Syu --needed podman openssl curl tar 
 ```
-#### Windows
-
-**Proximamente**
+* **Void Linux:**
+```bash
+sudo xbps-install -S podman openssl curl tar
+```
 
 ### Instalación con un solo comando
 
-Una vez instalados los prerrequisitos, ejecuta el siguiente comando en tu terminal. Este script descargará la imagen oficial, configurará la red y preparará tus volúmenes persistentes.
+Una vez instalados los prerrequisitos, ejecuta el siguiente comando en tu terminal. El asistente verificará tu entorno, te permitirá elegir el modo de red **Local** o **Red/Cloud**, configurará tus volúmenes persistentes e instalará la herramienta `yuuna-ui`:
 
 ```bash
 curl -fSL https://gitlab.com/AlterNezKo/yuuna-webui/-/raw/main/scripts/deploy.sh | bash
 ```
 
-> **Nota:** Si necesitas actualizar Yuuna WebUI en el futuro, simplemente vuelve a ejecutar este mismo comando. Tus datos, configuraciones y usuarios permanecerán intactos en tu máquina.
-> 
-> 
+> **Nota:** Para actualizar Yuuna WebUI en el futuro, ya no necesitas volver a pegar este enlace; basta con ejecutar `yuuna-ui update` desde tu terminal. Tus datos, sesiones y usuarios permanecerán intactos.
 
-Cuando el script finalice y veas el mensaje de éxito, espera al menos 1 minuto mientras el backend se inicialice, esto solo sucedera la primera vez, entonces abre tu navegador web de preferencia y dirígete a:
+El instalador esperará automáticamente hasta confirmar que la base de datos y el backend de Open WebUI hayan terminado de inicializarse. En cuanto veas el mensaje de éxito, abre tu navegador en la dirección indicada.
 
-* **URL de acceso:** `http://127.0.0.1:3000`
+### Gestión Diaria y Auto-arranque
 
-### Auto-arranque
+Al utilizar Podman en modo Rootless, el contenedor no levantará automaticamente al reiniciar tu computadora. Si tu equipo cuenta con 8 GB de RAM o menos, este comportamiento es ideal para encender tu entorno únicamente cuando lo necesites.
 
-Una vez que el script finaliza, Yuuna WebUI estará corriendo y listo para configurarse. Sin embargo, dado que utilizamos Podman sin privilegios de administrador, el contenedor no se iniciará automáticamente si reinicias tu computadora. Para levantar el entorno cuando lo necesites, utiliza:
+Puedes controlar Yuuna WebUI en cualquier momento mediante el comando `yuuna-ui`:
 
+**Iniciar el entorno:**
 ```bash
-podman start yuuna-webui
+yuuna-ui start
 ```
-Si tu equipo cuenta con recursos limitados, 8 GB de RAM o menos, recomiendo mantener este comportamiento. De ese modo enciendes tu entorno solo cuando realmente vayas a usarlo.
 
-Cuando necesites liberar memoria para otras aplicaciones, puedes detener el contenedor limpiamente con:
-
+**Detener el entorno y liberar memoria RAM:**
 ```bash
-podman stop yuuna-webui
+yuuna-ui stop
 ```
-___
 
-### Copias de Seguridad y Restauración
+**Consultar el estado y la salud del servicio:**
+```bash
+yuuna-ui status
+```
 
-Open WebUI recibe actualizaciones frecuentes. Se recomienda encarecidamente realizar una copia de seguridad antes de cada actualización.
+> Ejecuta `yuuna-ui --help` para ver todas las opciones disponibles.
 
-Gracias a la arquitectura de Yuuna WebUI, todos tus datos: chats, documentos subidos y credenciales viven de forma segura en un solo directorio en tu máquina host: `~/.local/yuuna-webui/`.
+---
+
+### Copias de Seguridad, Restauración y Rollback
+
+Open WebUI recibe actualizaciones constantes. Se recomienda realizar una copia de seguridad antes de actualizar. Todos tus datos viven de forma centralizada en `~/.local/yuuna-webui/`, y `yuuna-ui` automatiza el proceso completo.
 
 #### Crear un Respaldo
 
-Para asegurar tus datos, es vital detener el contenedor antes de copiar los archivos. Esto evita que la base de datos se corrompa si se está escribiendo en ella justo en el momento de la copia.
+Ejecuta el siguiente comando para crear una copia de seguridad. `yuuna-ui` detendrá temporalmente el contenedor para evitar que la base de datos se corrompa durante la copia, comprimirá tus datos en `~/.local/yuuna-webui/backups/` y volverá a encender el servicio automáticamente:
 
-**Detener Yuuna WebUI**
 ```bash
-podman stop yuuna-webui
+yuuna-ui backup
 ```
 
-**Comprimir toda la carpeta en un archivo seguro con la fecha actual**
+#### Restaurar un Respaldo y Rollback de Versión
+
+Si una nueva versión de Open WebUI presenta algún fallo, volver a un estado funcional toma solo dos pasos:
+
+**1. Restaurar tu copia de seguridad previa:**
+*(Si ejecutas `yuuna-ui backup-restore` sin argumentos, te mostrará la lista de respaldos disponibles).*
 ```bash
-tar -czvf yuuna-backup-$(date +%F).tar.gz ~/.local/yuuna-webui/
+yuuna-ui backup-restore <nombre-del-respaldo.tar.gz>
 ```
 
-**Volver a encender Yuuna WebUI**
+**2. Fijar la última versión estable que te funcionó (Rollback):**
+*Ejemplo: Si la versión `v0.12.1` falló, regresa a la `v0.11.0`:*
 ```bash
-podman start yuuna-webui
+yuuna-ui v0.11.0
 ```
 
-*Esto generará un archivo comprimido en tu carpeta. Guárdalo en un lugar seguro.*
-
-#### Restaurar un Respaldo
-
-Si algo se rompe, el proceso para volver en el tiempo es igual de sencillo.
-
-**Detener y eliminar el contenedor**
-```bash
-podman rm -f yuuna-webui
-```
-
-**Eliminar la carpeta de datos corrupta para ir sobre seguro**
-```bash
-rm -rf ~/.local/yuuna-webui/data
-```
-**Restaurar tu carpeta desde el archivo .tar.gz**
-```bash
-tar -xzvf yuuna-backup-AQUI_LA_FECHA.tar.gz -C /
-```
-**Volver a levantar el entorno fijando la última versión estable que te funcionó**
-_Ejemplo: Si la v0.12.1 falló, regresa a la v0.11.0_
-```bash
-deploy.sh v0.11.0
-```
 ---
 
-### Documentación extendida
+### Licencia
 
-Próximamente se añadirán guías detalladas de uso y recomendaciones generales.
-
-- Filosofia del proyecto: ¿por que Yuuna WebUI?
-- Recomendaciones: Open WebUI y flujo creativo
-- Recomendaciones: Modelos
-
-**Proximamente**
-
-###  Licencia
-
-Este proyecto y su documentación se distribuyen bajo la licencia **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**. Eres libre de compartir y adaptar este material, siempre y cuando otorgues el crédito correspondiente y distribuyas tus contribuciones bajo la misma licencia.
-
+Este proyecto se distribuye bajo la licencia **GNU General Public License v3.0 (GPLv3)**. Eres libre de usar, estudiar, compartir y modificar este software, siempre y cuando mantengas el reconocimiento de autoría y distribuyas cualquier versión derivada bajo esta misma licencia libre. Consulta el archivo [`LICENSE`](LICENSE) para más detalles.
