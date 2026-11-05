@@ -115,17 +115,18 @@ yuuna-ui backup
 
 Si una nueva versión de Open WebUI presenta algún fallo, volver a un estado funcional toma solo dos pasos:
 
-**1. Restaurar tu copia de seguridad previa:**
-*(Si ejecutas `yuuna-ui backup-restore` sin argumentos, te mostrará la lista de respaldos disponibles).*
-```bash
-yuuna-ui backup-restore <nombre-del-respaldo.tar.gz>
-```
+**1. Fijar la última versión estable que te funcionó**
 
-**2. Fijar la última versión estable que te funcionó (Rollback):**
-*Ejemplo: Si la versión `v0.12.1` falló, regresa a la `v0.11.0`:*
 ```bash
 yuuna-ui v0.11.0
 ```
+
+**2. Restaurar tu copia de seguridad previa:**
+
+```bash
+yuuna-ui backup-restore <nombre-del-respaldo.tar.gz>
+```
+> **Nota:** Si ejecutas `yuuna-ui backup-restore` sin argumentos, te mostrará la lista de respaldos disponibles.
 
 ---
 
