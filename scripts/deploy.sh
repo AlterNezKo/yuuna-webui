@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Yuuna WebUI CLI (yuuna-ui) v2.0.0
+# Yuuna WebUI CLI (yuuna-ui) v2.0.1
 # Framework ágil, seguro y rootless para desplegar y gestionar Open WebUI
 #
 # Autor:    Just Nezu (AlterNezKo)
@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-readonly YUUNA_CLI_VERSION="2.0.0"
+readonly YUUNA_CLI_VERSION="2.0.1"
 readonly CONTAINER_NAME="yuuna-webui"
 readonly IMAGE_REPO="ghcr.io/open-webui/open-webui"
 readonly STORAGE_LOCATION="${YUUNA_STORAGE_DIR:-$HOME/.local/yuuna-webui}"
@@ -465,14 +465,6 @@ ensure_local_bin_in_path() {
 
 install_cli() {
     run_cmd mkdir -p "$BIN_DIR"
-
-    if [[ -e "$STORAGE_LOCATION/deploy.sh" || -L "$STORAGE_LOCATION/deploy.sh" ]]; then
-        if [[ "$DRY_RUN" == true ]]; then
-            printf "${C_CYAN}[DRY-RUN]${C_RESET} rm -f %s\n" "$STORAGE_LOCATION/deploy.sh"
-        else
-            rm -f "$STORAGE_LOCATION/deploy.sh"
-        fi
-    fi
 
     local script_source="${BASH_SOURCE[0]:-}"
     local is_already_installed=false

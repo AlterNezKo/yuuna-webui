@@ -2,6 +2,11 @@
 
 Todas las novedades y cambios notables de Yuuna WebUI se documentarán en este archivo.
 
+## [v2.0.1] - 05-11-2026
+### Mantenimiento y Correcciones
+- **Depuración del código fuente:** Limpieza de comentarios internos redundantes en `scripts/deploy.sh` para mejorar su legibilidad y mantenimiento.
+- **Documentación:** Correcciones ortotipográficas y de formato en `README.md`.
+
 ## [v2.0.0] - 04-11-2026
 ### Añadido
 - **Evolución a Yuuna WebUI CLI (`yuuna-ui`):** `deploy.sh` pasa de ser un instalador básico a una herramienta de línea de comandos autoinstalable en el sistema para gestionar el ciclo de vida completo del contenedor (actualizaciones, control de encendido/apagado, estado, registros y cambio de versiones).

@@ -14,7 +14,7 @@
 ___
 
 
-> Repositorio canonico: [ Yuuna WebUI en GitLab](https://gitlab.com/AlterNezKo/yuuna-webui)
+> Repositorio canónico: [Yuuna WebUI en GitLab](https://gitlab.com/AlterNezKo/yuuna-webui)
 > -- El repositorio de GitHub es un espejo de solo lectura.
 
 ___
@@ -29,7 +29,7 @@ Su objetivo es facilitarte un entorno de asistencia multipropósito sin las rest
 ### Características Principales
 
 * **Despliegue Seguro y Verificado:** Basado en contenedores Podman Rootless, con comprobación automática de dependencias y healthcheck.
-* **Gestor CLI Integrado** Incluye su propia utilidad de línea de comandos para actualizar, iniciar, detener, respaldar o cambiar de versión con un solo comando.
+* **Gestor CLI Integrado:** Incluye su propia utilidad de línea de comandos para actualizar, iniciar, detener, respaldar o cambiar de versión con un solo comando.
 * **Red Flexible (Local o Cloud):** Aislado por defecto en el loopback local `127.0.0.1` para máxima privacidad y estabilidad, con opción de despliegue abierto a tu red local o servidores en la nube.
 * **Privacidad Absoluta:** Todos tus chats, prompts, credenciales y respaldos viven únicamente en tu almacenamiento local `~/.local/yuuna-webui/`.
 
@@ -76,7 +76,7 @@ El instalador esperará automáticamente hasta confirmar que la base de datos y 
 
 ### Gestión Diaria y Auto-arranque
 
-Al utilizar Podman en modo Rootless, el contenedor no levantará automaticamente al reiniciar tu computadora. Si tu equipo cuenta con 8 GB de RAM o menos, este comportamiento es ideal para encender tu entorno únicamente cuando lo necesites.
+Al utilizar Podman en modo Rootless, el contenedor no levantará automáticamente al reiniciar tu computadora. Si tu equipo cuenta con 8 GB de RAM o menos, este comportamiento es ideal para encender tu entorno únicamente cuando lo necesites.
 
 Puedes controlar Yuuna WebUI en cualquier momento mediante el comando `yuuna-ui`:
 
