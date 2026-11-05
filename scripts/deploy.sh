@@ -10,9 +10,6 @@
 
 set -euo pipefail
 
-# ------------------------------------------------------------------------------
-# Constantes y Configuración
-# ------------------------------------------------------------------------------
 readonly YUUNA_CLI_VERSION="2.0.0"
 readonly CONTAINER_NAME="yuuna-webui"
 readonly IMAGE_REPO="ghcr.io/open-webui/open-webui"
@@ -28,7 +25,6 @@ readonly DEFAULT_BIND="127.0.0.1"
 readonly DEFAULT_PORT="3000"
 readonly HEALTH_TIMEOUT=200
 
-# Estado de argumentos CLI
 ACTION="deploy"
 ACTION_SET=false
 TARGET_VERSION="main"
@@ -39,13 +35,9 @@ DRY_RUN=false
 ALLOW_ROOT=false
 RESTORE_TARGET=""
 
-# Variables resueltas durante la ejecución
 FINAL_BIND_ADDR=""
 FINAL_PORT=""
 
-# ------------------------------------------------------------------------------
-# Utilidades de Salida
-# ------------------------------------------------------------------------------
 if [[ -t 1 ]] && [[ -z "${NO_COLOR:-}" ]]; then
     readonly C_RESET=$'\033[0m'
     readonly C_BOLD=$'\033[1m'
@@ -82,9 +74,6 @@ run_cmd() {
     "$@"
 }
 
-# ------------------------------------------------------------------------------
-# Ayuda y Documentación CLI
-# ------------------------------------------------------------------------------
 show_help() {
     cat <<EOF
 ${C_BOLD}Yuuna WebUI CLI (yuuna-ui)${C_RESET} — Gestor de despliegue seguro para Open WebUI
@@ -126,9 +115,6 @@ ${C_BOLD}EJEMPLOS:${C_RESET}
 EOF
 }
 
-# ------------------------------------------------------------------------------
-# Procesamiento de Argumentos
-# ------------------------------------------------------------------------------
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -205,7 +191,6 @@ parse_args() {
                 if [[ "$ACTION_SET" == true ]]; then
                     die "El comando '$ACTION' no acepta argumentos adicionales ('$1'). Usa 'yuuna-ui --help'."
                 elif [[ "$1" =~ ^([vV]?[0-9]+(\.[0-9]+)+.*|main|latest|cuda|ollama|slim)$ ]]; then
-                    # Compatibilidad directa con atajo de versión: deploy.sh v0.11.0 o yuuna-ui v0.11.0
                     TARGET_VERSION="$1"
                     ACTION="deploy"
                     ACTION_SET=true
@@ -218,9 +203,6 @@ parse_args() {
     done
 }
 
-# ------------------------------------------------------------------------------
-# Validaciones y Pre-flight Checks
-# ------------------------------------------------------------------------------
 check_root() {
     local current_uid="${EUID:-$(id -u)}"
     if [[ "$current_uid" -eq 0 ]]; then
@@ -311,7 +293,6 @@ check_dependencies() {
     info "Verificando dependencias del sistema..."
     require_commands podman openssl curl tar
 
-    # Comprobar que Podman Rootless esté operativo
     if ! podman info >/dev/null 2>&1; then
         err "Podman está instalado, pero no pudo inicializar el entorno Rootless ('podman info' falló)."
         err "Verifica que tu usuario tenga rangos subuid/subgid asignados:"
@@ -324,7 +305,6 @@ check_dependencies() {
 
 check_port_available() {
     local port="$1"
-    # Si el propio contenedor yuuna-webui ya está corriendo y usa este puerto, se reemplazará con --replace
     if podman container exists "$CONTAINER_NAME" 2>/dev/null; then
         local running
         running=$(podman inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null || echo "false")
@@ -337,7 +317,6 @@ check_port_available() {
         fi
     fi
 
-    # Comprobar con ss si otro proceso ocupa el puerto
     if command -v ss >/dev/null 2>&1; then
         if ss -tlnH "sport = :${port}" 2>/dev/null | grep -q .; then
             die "El puerto ${port} ya está siendo utilizado por otra aplicación. Usa '--port <OTRO_PUERTO>' para elegir uno libre."
@@ -345,9 +324,6 @@ check_port_available() {
     fi
 }
 
-# ------------------------------------------------------------------------------
-# Configuración de Entorno y Red
-# ------------------------------------------------------------------------------
 read_env_value() {
     local key="$1"
     if [[ -f "$ENV_FILE" ]]; then
@@ -364,6 +340,7 @@ prompt_network_mode() {
     echo "  2) Red Local / Cloud (0.0.0.0)  — Accesible desde otros dispositivos en tu LAN o VPS"
     echo ""
 
+    # Leer de /dev/tty porque con curl | bash la entrada estándar es el script
     if [[ -r /dev/tty ]]; then
         printf "Elige una opción [1/2] (Enter = 1): " >/dev/tty
         read -r choice </dev/tty || choice="1"
@@ -402,7 +379,6 @@ configure_environment() {
         saved_port=$(read_env_value "YUUNA_PORT")
     fi
 
-    # 1. Resolver llave secreta de sesiones
     if [[ -z "$saved_secret" ]]; then
         info "Generando nueva WEBUI_SECRET_KEY para proteger las sesiones..."
         saved_secret=$(openssl rand -hex 32)
@@ -410,7 +386,6 @@ configure_environment() {
         info "Llave de sesión WEBUI_SECRET_KEY existente detectada."
     fi
 
-    # 2. Resolver dirección de escucha (Loopback vs Red)
     if [[ -n "$CLI_BIND_ADDR" ]]; then
         FINAL_BIND_ADDR="$CLI_BIND_ADDR"
         info "Modo de red definido por argumento: $FINAL_BIND_ADDR"
@@ -426,7 +401,6 @@ configure_environment() {
         prompt_network_mode
     fi
 
-    # 3. Resolver puerto
     if [[ -n "$CLI_PORT" ]]; then
         FINAL_PORT="$CLI_PORT"
     elif [[ -n "$saved_port" ]]; then
@@ -435,7 +409,6 @@ configure_environment() {
         FINAL_PORT="$DEFAULT_PORT"
     fi
 
-    # Validar puerto resuelto según su origen
     if [[ -z "$CLI_PORT" && -n "$saved_port" ]]; then
         validate_port "$FINAL_PORT" "env"
     else
@@ -444,7 +417,6 @@ configure_environment() {
 
     check_port_available "$FINAL_PORT"
 
-    # 4. Guardar .env con permisos restringidos (600)
     if [[ "$DRY_RUN" == true ]]; then
         printf "${C_CYAN}[DRY-RUN]${C_RESET} Escribir %s (chmod 600) con YUUNA_BIND_ADDR=%s y YUUNA_PORT=%s\n" \
             "$ENV_FILE" "$FINAL_BIND_ADDR" "$FINAL_PORT"
@@ -459,9 +431,6 @@ EOF
     fi
 }
 
-# ------------------------------------------------------------------------------
-# Autoinstalación del CLI
-# ------------------------------------------------------------------------------
 ensure_local_bin_in_path() {
     if [[ ":$PATH:" == *":$BIN_DIR:"* ]]; then
         return 0
@@ -497,7 +466,6 @@ ensure_local_bin_in_path() {
 install_cli() {
     run_cmd mkdir -p "$BIN_DIR"
 
-    # Limpieza de archivo antiguo legado si existe en almacenamiento
     if [[ -e "$STORAGE_LOCATION/deploy.sh" || -L "$STORAGE_LOCATION/deploy.sh" ]]; then
         if [[ "$DRY_RUN" == true ]]; then
             printf "${C_CYAN}[DRY-RUN]${C_RESET} rm -f %s\n" "$STORAGE_LOCATION/deploy.sh"
@@ -510,8 +478,6 @@ install_cli() {
     local is_already_installed=false
 
     if [[ -n "$script_source" && -f "$script_source" ]]; then
-        # Solo consideramos ya instalado si BIN_LINK es un archivo regular (no un symlink)
-        # y resuelve exactamente al mismo archivo físico que el script actual.
         if [[ -f "$BIN_LINK" && ! -L "$BIN_LINK" ]]; then
             local src_real dst_real
             src_real=$(readlink -f "$script_source" 2>/dev/null || echo "$script_source")
@@ -551,7 +517,6 @@ install_cli() {
             die "Error al copiar el script a '$tmp_script'."
         fi
     else
-        # Ejecutado vía tubería (curl -fsSL ... | bash)
         info "Descargando ejecutable CLI en $BIN_LINK..."
         if ! curl -fsSL "$RAW_SCRIPT_URL" -o "$tmp_script"; then
             rm -f "$tmp_script"
@@ -570,6 +535,7 @@ install_cli() {
     fi
 
     chmod 755 "$tmp_script"
+    # Instalación atómica mediante archivo temporal y mv
     if ! mv -f "$tmp_script" "$BIN_LINK"; then
         rm -f "$tmp_script"
         die "Error al mover '$tmp_script' a '$BIN_LINK'."
@@ -579,9 +545,6 @@ install_cli() {
     ok "Comando 'yuuna-ui' disponible en $BIN_LINK"
 }
 
-# ------------------------------------------------------------------------------
-# Despliegue del Contenedor y Salud
-# ------------------------------------------------------------------------------
 is_selinux_active() {
     if command -v getenforce >/dev/null 2>&1; then
         local mode
@@ -599,6 +562,7 @@ deploy_container() {
     local pull_mode="${1:---pull=always}"
     local image="${2:-${IMAGE_REPO}:${TARGET_VERSION}}"
     local volume_spec="$DATA_DIR:/app/backend/data"
+    # Etiqueta :z del volumen solo si SELinux está activo
     if is_selinux_active; then
         info "SELinux activo detectado: añadiendo etiqueta ':z' al volumen de datos."
         volume_spec="${volume_spec}:z"
@@ -650,7 +614,6 @@ wait_for_healthy() {
     local health_url="http://127.0.0.1:${port}/health"
 
     while (( elapsed < HEALTH_TIMEOUT )); do
-        # 1. Verificar que el contenedor siga corriendo
         local running
         running=$(podman inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null || echo "false")
         if [[ "$running" != "true" ]]; then
@@ -660,7 +623,6 @@ wait_for_healthy() {
             exit 1
         fi
 
-        # 2. Sondeo HTTP al endpoint /health
         if curl -sf --max-time 2 "$health_url" >/dev/null 2>&1; then
             printf "\r${C_OK}[OK]${C_RESET}   Backend inicializado y respondiendo correctamente (%ds).          \n" "$elapsed"
             return 0
@@ -709,9 +671,6 @@ print_summary() {
     echo "======================================================================"
 }
 
-# ------------------------------------------------------------------------------
-# Comandos de Gestión y Respaldos
-# ------------------------------------------------------------------------------
 require_container_exists() {
     if ! podman container exists "$CONTAINER_NAME" 2>/dev/null; then
         die "El contenedor '$CONTAINER_NAME' aún no existe. Ejecuta 'yuuna-ui deploy' para desplegarlo primero."
@@ -854,12 +813,10 @@ cmd_backup_restore() {
         die "El archivo '$archive_path' está corrupto o no es un archivo .tar.gz válido."
     fi
 
-    # 1. Validar que ninguna entrada empiece con '/' o contenga componente '..'
     if grep -qE '^/' <<< "$archive_listing" || grep -qE '(^|/)\.\.(/|$)' <<< "$archive_listing"; then
         die "El archivo de respaldo contiene rutas inseguras (rutas absolutas o componentes '..'). Restauración abortada."
     fi
 
-    # 2. Exigir formato nuevo con data/ en la raíz; rechazar formatos antiguos/no soportados
     if ! grep -qE '^(\./)?data/' <<< "$archive_listing"; then
         die "Formato de respaldo antiguo o no soportado (se requiere 'data/' en la raíz). Por favor, extrae manualmente."
     fi
@@ -869,7 +826,6 @@ cmd_backup_restore() {
     warn "con el contenido del respaldo:"
     warn "  $archive_path"
 
-    # Confirmación interactiva (se omite en dry-run)
     if [[ "$DRY_RUN" == false ]]; then
         if [[ -r /dev/tty ]]; then
             local confirm=""
@@ -884,7 +840,6 @@ cmd_backup_restore() {
         fi
     fi
 
-    # Verificar estado del contenedor antes del restore
     local container_exists=false
     local was_running=false
     local current_image=""
@@ -900,7 +855,6 @@ cmd_backup_restore() {
         fi
     fi
 
-    # Manejo de --dry-run: simulación sin escrituras
     if [[ "$DRY_RUN" == true ]]; then
         printf "${C_CYAN}[DRY-RUN]${C_RESET} mktemp -d %s/.restore-XXXXXX\n" "$STORAGE_LOCATION"
         printf "${C_CYAN}[DRY-RUN]${C_RESET} tar -xzf %s -C <temporal> --no-same-owner\n" "$archive_path"
@@ -918,7 +872,6 @@ cmd_backup_restore() {
         return 0
     fi
 
-    # 3. Extraer a temporal con trap de limpieza y reinicio si falla
     local restore_tmp=""
     local restore_succeeded=false
     cleanup_restore() {
@@ -932,6 +885,7 @@ cmd_backup_restore() {
     }
     trap cleanup_restore EXIT
 
+    # Extraer en temporal y validar antes de reemplazar data
     mkdir -p "$STORAGE_LOCATION"
     restore_tmp=$(mktemp -d "$STORAGE_LOCATION/.restore-XXXXXX")
 
@@ -940,12 +894,10 @@ cmd_backup_restore() {
         die "Error al extraer el archivo de respaldo '$archive_path'."
     fi
 
-    # 4. Validar que exista data/ en el temporal
     if [[ ! -d "$restore_tmp/data" ]]; then
         die "El respaldo extraído no contiene el directorio 'data/' requerido. Operación abortada."
     fi
 
-    # 5. Reemplazar DATA_DIR existente y mover data restaurada directamente
     if [[ -d "$DATA_DIR" ]]; then
         info "Limpiando datos actuales en $DATA_DIR..."
         rm -rf "$DATA_DIR"
@@ -963,7 +915,6 @@ cmd_backup_restore() {
     ok "Datos restaurados correctamente."
     restore_succeeded=true
 
-    # Recrear contenedor si existía previamente
     if [[ "$container_exists" == true ]]; then
         local restored_bind restored_port
         restored_bind=$(read_env_value "YUUNA_BIND_ADDR")
@@ -988,9 +939,6 @@ cmd_backup_restore() {
     trap - EXIT
 }
 
-# ------------------------------------------------------------------------------
-# Punto de Entrada Principal
-# ------------------------------------------------------------------------------
 main() {
     parse_args "$@"
     check_root
@@ -1046,4 +994,5 @@ main() {
     esac
 }
 
+# Llamada a main al final para evitar ejecución parcial si se corta la descarga
 main "$@"
