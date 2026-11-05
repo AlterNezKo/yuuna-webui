@@ -1,18 +1,43 @@
 stages:
   - release
 
-# Este trabajo (job) se encarga de crear el Release automáticamente
+# Este trabajo (job) se encarga de crear el Release automáticamente al subir un tag vX.Y.Z
 crear_lanzamiento:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   rules:
-    # Solo se ejecuta si subes un tag que empiece con "v" (ej. v1.0.0)
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
   script:
     - echo "Iniciando proceso de Release para la versión $CI_COMMIT_TAG"
+    - HASH=$(sha256sum scripts/deploy.sh | awk '{print $1}')
+    - echo "SHA256 calculado: $HASH"
+    - |
+      cat <<EOF > release_notes.md
+      🎉 Lanzamiento oficial de **Yuuna WebUI $CI_COMMIT_TAG**.
+
+      Por favor, revisa el archivo [\`CHANGELOG.md\`]($CI_PROJECT_URL/-/blob/$CI_COMMIT_TAG/CHANGELOG.md) para ver la lista completa de cambios y novedades.
+
+      ---
+
+      ### 🔐 Verificación de Integridad (SHA-256)
+      Hash oficial de \`scripts/deploy.sh\` (\`yuuna-ui\`) para la versión **$CI_COMMIT_TAG**:
+      \`\`\`text
+      $HASH  deploy.sh
+      \`\`\`
+
+      **Instalación verificando el hash manualmente (opcional):**
+      \`\`\`bash
+      curl -fsSLO $CI_PROJECT_URL/-/raw/$CI_COMMIT_TAG/scripts/deploy.sh
+      echo "$HASH  deploy.sh" | sha256sum -c - && bash deploy.sh
+      \`\`\`
+      EOF
   release:
-    name: 'Release $CI_COMMIT_TAG'
-    # Por ahora, pondremos un mensaje genérico apuntando al changelog.
-    description: '🎉 Lanzamiento oficial de **Yuuna WebUI $CI_COMMIT_TAG**. Por favor, revisa el archivo `CHANGELOG.md` en el código fuente para ver la lista completa de cambios y novedades.'
+    name: 'Yuuna WebUI $CI_COMMIT_TAG'
+    description: './release_notes.md'
     tag_name: '$CI_COMMIT_TAG'
     ref: '$CI_COMMIT_SHA'
+    assets:
+      links:
+        - name: 'yuuna-ui.sh (deploy.sh $CI_COMMIT_TAG)'
+          url: '$CI_PROJECT_URL/-/raw/$CI_COMMIT_TAG/scripts/deploy.sh?inline=false'
+          link_type: 'package'
