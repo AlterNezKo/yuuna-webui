@@ -1,0 +1,23 @@
+# Variables de entorno y llaves secretas
+.env
+*.env
+
+# Copias de seguridad y archivos de datos locales
+*.tar.gz
+*.tgz
+backups/
+data/
+
+# Archivos de referencia personal y copias temporales de trabajo
+yuuna-ui_reference.sh
+*_reference.sh
+*.tmp
+*.bak
+*.old
+*~
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+*.swp
+.DS_Store
