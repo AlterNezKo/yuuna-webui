@@ -94,7 +94,7 @@ ${C_BOLD}COMANDOS:${C_RESET}
   logs                      Muestra los registros (logs) recientes del contenedor
   backup                    Pausa el contenedor, crea un respaldo seguro y lo reanuda
   backup-restore <ARCHIVO>  Pausa el contenedor, restaura un respaldo (.tar.gz) y lo reanuda
-  uninstall                 Desinstala el contenedor, la imagen y el ejecutable yuuna-ui
+  uninstall                 Desinstala el contenedor, las imágenes y la CLI yuuna-ui
 
 ${C_BOLD}OPCIONES:${C_RESET}
   --local                   Fuerza el modo Loopback aislado (127.0.0.1: este equipo o VPS con Proxy)
@@ -607,7 +607,7 @@ self_update() {
 
     info "¡Se ha encontrado una nueva versión de yuuna-ui (v$YUUNA_CLI_VERSION -> v$remote_version)!"
     sleep 1
-    info "Actualizando ejecutable en $BIN_LINK..."
+    info "Actualizando la CLI yuuna-ui..."
     chmod 755 "$tmp_script"
     if ! mv -f "$tmp_script" "$BIN_LINK"; then
         rm -f "$tmp_script"
@@ -726,10 +726,9 @@ print_access_urls() {
     if [[ "$bind" == "0.0.0.0" ]]; then
         local lan_ip
         lan_ip=$(detect_lan_ip)
-        printf "  * ${C_BOLD}Acceso LAN:${C_RESET}   http://%s:%s\n" "$lan_ip" "$port"
+        printf "  * ${C_BOLD}Acceso LAN:${C_RESET}         http://%s:%s\n" "$lan_ip" "$port"
         echo ""
         warn "Aviso de Seguridad: El puerto ${port} está expuesto en 0.0.0.0."
-        warn "Si estás en un VPS en la nube, recuerda usar un proxy inverso con HTTPS (Caddy/Nginx) o restringir tu firewall."
     fi
 }
 
