@@ -9,6 +9,8 @@ backups/
 data/
 
 # Archivos de referencia personal y copias temporales de trabajo
+# Carpeta de documentación interna, arquitectura y referencias privadas
+base/
 yuuna-ui_reference.sh
 *_reference.sh
 *.tmp

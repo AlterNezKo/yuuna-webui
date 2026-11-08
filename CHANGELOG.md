@@ -4,8 +4,8 @@ Todas las novedades y cambios notables de Yuuna WebUI se documentarán en este a
 
 ## [v2.0.1] - 05-11-2026
 ### Mantenimiento y Correcciones
-- **Depuración del código fuente:** Limpieza de comentarios internos redundantes en `scripts/deploy.sh` para mejorar su legibilidad y mantenimiento.
-- **Documentación:** Correcciones ortotipográficas y de formato en `README.md`.
+- **Depuración del código fuente:** Limpieza de comentarios redundantes.
+- **Documentación:** Correcciones ortotipográficas en el `README.md`.
 
 ## [v2.0.0] - 04-11-2026
 ### Añadido
