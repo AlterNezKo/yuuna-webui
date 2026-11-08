@@ -4,7 +4,7 @@ Todas las novedades y cambios notables de Yuuna WebUI se documentarán en este a
 
 ## [v2.1.1] - 08-11-2026
 ### Mantenimiento y Correcciones
-- **Claridad en modos de red y despliegues VPS:** Ajuste en las descripciones interactivas, ayuda del CLI y documentación en `README.md` para distinguir con precisión el modo Loopback aislado (`127.0.0.1`, recomendado para equipos personales y VPS con Proxy Inverso) frente al modo abierto a la Red Local / LAN (`0.0.0.0`).
+- **Claridad en modos de red y despliegues VPS:** Ajuste en las descripciones interactivas, ayuda del CLI y documentación para afinar las recomendaciones de uso.
 
 ## [v2.1.0] - 07-11-2026
 ### Añadido
