@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Yuuna WebUI CLI (yuuna-ui) v2.1.0
+# Yuuna WebUI CLI (yuuna-ui) v2.1.1
 # Framework ágil, seguro y rootless para desplegar y gestionar Open WebUI
 #
 # Autor:    Just Nezu (AlterNezKo)
@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-readonly YUUNA_CLI_VERSION="2.1.0"
+readonly YUUNA_CLI_VERSION="2.1.1"
 readonly CONTAINER_NAME="yuuna-webui"
 readonly IMAGE_REPO="ghcr.io/open-webui/open-webui"
 readonly STORAGE_LOCATION="${YUUNA_STORAGE_DIR:-$HOME/.local/yuuna-webui}"
@@ -97,8 +97,8 @@ ${C_BOLD}COMANDOS:${C_RESET}
   uninstall                 Desinstala el contenedor, la imagen y el ejecutable yuuna-ui
 
 ${C_BOLD}OPCIONES:${C_RESET}
-  --local                   Fuerza el modo Loopback privado (127.0.0.1)
-  --network                 Permite acceso desde Red Local / Cloud (0.0.0.0)
+  --local                   Fuerza el modo Loopback aislado (127.0.0.1: este equipo o VPS con Proxy)
+  --network                 Permite acceso directo desde tu Red Local / LAN (0.0.0.0: NO EXPONER A INTERNET)
   -p, --port <PUERTO>       Define el puerto de acceso (por defecto: 3000)
   -v, --version             Muestra la versión instalada de Yuuna WebUI CLI
   --reconfigure             Vuelve a abrir el menú interactivo de red y actualiza .env
@@ -350,8 +350,8 @@ prompt_network_mode() {
     local choice=""
     echo ""
     printf "${C_BOLD}Selecciona el modo de red para Yuuna WebUI:${C_RESET}\n"
-    echo "  1) Local / Loopback (127.0.0.1) — Privacidad total, solo accesible en este equipo [Recomendado]"
-    echo "  2) Red Local / Cloud (0.0.0.0)  — Accesible desde otros dispositivos en tu LAN o VPS"
+    echo "  1) Local / Loopback (127.0.0.1) — Aislado: uso en este equipo o VPS con Proxy Inverso [Recomendado]"
+    echo "  2) Red Local / LAN (0.0.0.0)    — Abierto: accesible desde otros dispositivos en tu red local"
     echo ""
 
     # Leer de /dev/tty porque con curl | bash la entrada estándar es el script
@@ -370,7 +370,7 @@ prompt_network_mode() {
             ;;
         2)
             FINAL_BIND_ADDR="0.0.0.0"
-            warn "Modo seleccionado: Red Local / Cloud (0.0.0.0). El servicio será accesible externamente."
+            warn "Modo seleccionado: Red Local / LAN (0.0.0.0). El puerto estará expuesto en tu red."
             ;;
         *)
             warn "Opción '${choice}' no reconocida. Aplicando modo seguro por defecto: Local (127.0.0.1)."
@@ -726,7 +726,7 @@ print_access_urls() {
     if [[ "$bind" == "0.0.0.0" ]]; then
         local lan_ip
         lan_ip=$(detect_lan_ip)
-        printf "  * ${C_BOLD}Acceso Red / LAN:${C_RESET}   http://%s:%s\n" "$lan_ip" "$port"
+        printf "  * ${C_BOLD}Acceso LAN:${C_RESET}   http://%s:%s\n" "$lan_ip" "$port"
         echo ""
         warn "Aviso de Seguridad: El puerto ${port} está expuesto en 0.0.0.0."
         warn "Si estás en un VPS en la nube, recuerda usar un proxy inverso con HTTPS (Caddy/Nginx) o restringir tu firewall."

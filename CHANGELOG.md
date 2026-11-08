@@ -2,6 +2,10 @@
 
 Todas las novedades y cambios notables de Yuuna WebUI se documentarán en este archivo.
 
+## [v2.1.1] - 08-11-2026
+### Mantenimiento y Correcciones
+- **Claridad en modos de red y despliegues VPS:** Ajuste en las descripciones interactivas, ayuda del CLI y documentación en `README.md` para distinguir con precisión el modo Loopback aislado (`127.0.0.1`, recomendado para equipos personales y VPS con Proxy Inverso) frente al modo abierto a la Red Local / LAN (`0.0.0.0`).
+
 ## [v2.1.0] - 07-11-2026
 ### Añadido
 - **Auto-actualización integrada:** Ahora `yuuna-ui update` verifica automáticamente si existe una versión superior de `yuuna-ui` en el repositorio oficial y la actualiza antes de actualizar el contenedor de Open WebUI. También disponible por separado mediante `yuuna-ui self-update`.

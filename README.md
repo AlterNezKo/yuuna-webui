@@ -30,7 +30,7 @@ Su objetivo es facilitarte un entorno de asistencia multipropósito sin las rest
 
 * **Despliegue Seguro y Verificado:** Basado en contenedores Podman Rootless, con comprobación automática de dependencias y healthcheck.
 * **Gestor CLI Integrado:** Incluye su propia utilidad de línea de comandos para actualizar, iniciar, detener, respaldar o cambiar de versión con un solo comando.
-* **Red Flexible (Local o Cloud):** Aislado por defecto en el loopback local `127.0.0.1` para máxima privacidad y estabilidad, con opción de despliegue abierto a tu red local o servidores en la nube.
+* **Red Flexible:** Aislado por defecto en `127.0.0.1` para máxima seguridad, con opción de apertura directa a tu red doméstica `0.0.0.0` para entrar desde otros dispositivos.
 * **Privacidad Absoluta:** Todos tus chats, prompts, credenciales y respaldos viven únicamente en tu almacenamiento local `~/.local/yuuna-webui/`.
 
 ---
@@ -64,13 +64,15 @@ sudo xbps-install -S podman openssl curl tar
 
 ### Instalación con un solo comando
 
-Una vez instalados los prerrequisitos, ejecuta el siguiente comando en tu terminal. El asistente verificará tu entorno, te permitirá elegir el modo de red **Local** o **Red/Cloud**, configurará tus volúmenes persistentes e instalará la herramienta `yuuna-ui`:
+Una vez instalados los prerrequisitos, ejecuta el siguiente comando en tu terminal. El asistente verificará tu entorno, te permitirá elegir el modo de red, configurará tus volúmenes persistentes e instalará la herramienta `yuuna-ui`:
 
 ```bash
 curl -fSL https://gitlab.com/AlterNezKo/yuuna-webui/-/raw/main/scripts/deploy.sh | bash
 ```
 
 > **Nota:** Para actualizar Yuuna WebUI en el futuro, ya no necesitas volver a pegar este enlace; basta con ejecutar `yuuna-ui update` desde tu terminal. Tus datos, sesiones y usuarios permanecerán intactos.
+>
+> ¿Desplegando en un VPS con dominio propio? Elige el modo por defecto y apunta tu proxy inverso a `127.0.0.1:3000`.
 
 El instalador esperará automáticamente hasta confirmar que la base de datos y el backend de Open WebUI hayan terminado de inicializarse. En cuanto veas el mensaje de éxito, abre tu navegador en la dirección indicada.
 
