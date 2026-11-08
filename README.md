@@ -130,6 +130,17 @@ yuuna-ui backup-restore <nombre-del-respaldo.tar.gz>
 
 ---
 
+### Desinstalación
+
+Si deseas retirar Yuuna WebUI de tu sistema ejecuta:
+
+```bash
+yuuna-ui uninstall
+```
+> Por seguridad, el asistente te preguntará si deseas conservar tus conversaciones y respaldos en `~/.local/yuuna-webui/`. Si prefieres borrar absolutamente todo en un solo paso, utiliza `yuuna-ui uninstall --purge`.
+
+---
+
 ### Licencia
 
 Este proyecto se distribuye bajo la licencia **GNU General Public License v3.0 (GPLv3)**. Eres libre de usar, estudiar, compartir y modificar este software, siempre y cuando mantengas el reconocimiento de autoría y distribuyas cualquier versión derivada bajo esta misma licencia libre. Consulta el archivo [`LICENSE`](LICENSE) para más detalles.

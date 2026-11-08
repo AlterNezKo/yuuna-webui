@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Yuuna WebUI CLI (yuuna-ui) v2.0.1
+# Yuuna WebUI CLI (yuuna-ui) v2.1.0
 # Framework ágil, seguro y rootless para desplegar y gestionar Open WebUI
 #
 # Autor:    Just Nezu (AlterNezKo)
@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-readonly YUUNA_CLI_VERSION="2.0.1"
+readonly YUUNA_CLI_VERSION="2.1.0"
 readonly CONTAINER_NAME="yuuna-webui"
 readonly IMAGE_REPO="ghcr.io/open-webui/open-webui"
 readonly STORAGE_LOCATION="${YUUNA_STORAGE_DIR:-$HOME/.local/yuuna-webui}"
@@ -34,6 +34,7 @@ RECONFIGURE=false
 DRY_RUN=false
 ALLOW_ROOT=false
 RESTORE_TARGET=""
+PURGE=false
 
 FINAL_BIND_ADDR=""
 FINAL_PORT=""
@@ -84,6 +85,7 @@ ${C_BOLD}USO:${C_RESET}
 ${C_BOLD}COMANDOS:${C_RESET}
   deploy [VERSIÓN]          Instala o reconfigura Yuuna WebUI (por defecto: 'main')
   update [VERSIÓN]          Actualiza el contenedor existente manteniendo configuración (por defecto: 'main')
+  self-update               Comprueba y actualiza el propio ejecutable yuuna-ui
   (sin comando)             Equivale a 'deploy main' (o reconfiguración interactiva)
   <VERSIÓN>                 Atajo para fijar versión o hacer rollback (ej: yuuna-ui v0.11.0)
   start                     Inicia el contenedor detenido
@@ -92,6 +94,7 @@ ${C_BOLD}COMANDOS:${C_RESET}
   logs                      Muestra los registros (logs) recientes del contenedor
   backup                    Pausa el contenedor, crea un respaldo seguro y lo reanuda
   backup-restore <ARCHIVO>  Pausa el contenedor, restaura un respaldo (.tar.gz) y lo reanuda
+  uninstall                 Desinstala el contenedor, la imagen y el ejecutable yuuna-ui
 
 ${C_BOLD}OPCIONES:${C_RESET}
   --local                   Fuerza el modo Loopback privado (127.0.0.1)
@@ -99,6 +102,7 @@ ${C_BOLD}OPCIONES:${C_RESET}
   -p, --port <PUERTO>       Define el puerto de acceso (por defecto: 3000)
   -v, --version             Muestra la versión instalada de Yuuna WebUI CLI
   --reconfigure             Vuelve a abrir el menú interactivo de red y actualiza .env
+  --purge                   Elimina también todos los datos y respaldos al usar 'uninstall'
   --dry-run                 Simula las acciones mostrando los comandos sin ejecutarlos
   --allow-root              Permite ejecutar el script como usuario root (para VPS específicos)
   -h, --help                Muestra esta ayuda
@@ -112,6 +116,8 @@ ${C_BOLD}EJEMPLOS:${C_RESET}
   yuuna-ui --network --port 8080           # Despliega abierto a la red en el puerto 8080
   yuuna-ui backup                          # Genera un respaldo seguro en ~/.local/yuuna-webui/backups/
   yuuna-ui backup-restore <archivo.tar.gz> # Restaura un respaldo previo de forma segura
+  yuuna-ui uninstall                       # Desinstala Yuuna WebUI preguntando si conservar datos
+  yuuna-ui uninstall --purge               # Desinstalación completa incluyendo datos y respaldos
 EOF
 }
 
@@ -136,7 +142,7 @@ parse_args() {
                     shift
                 fi
                 ;;
-            start|stop|status|logs|backup)
+            start|stop|status|logs|backup|self-update|uninstall)
                 ACTION="$1"
                 ACTION_SET=true
                 shift
@@ -172,6 +178,10 @@ parse_args() {
                 RECONFIGURE=true
                 shift
                 ;;
+            --purge)
+                PURGE=true
+                shift
+                ;;
             --dry-run)
                 DRY_RUN=true
                 shift
@@ -201,6 +211,10 @@ parse_args() {
                 ;;
         esac
     done
+
+    if [[ "$PURGE" == true && "$ACTION" != "uninstall" ]]; then
+        die "La opción '--purge' solo puede utilizarse junto con el comando 'uninstall'."
+    fi
 }
 
 check_root() {
@@ -535,6 +549,80 @@ install_cli() {
 
     ensure_local_bin_in_path
     ok "Comando 'yuuna-ui' disponible en $BIN_LINK"
+}
+
+is_version_newer() {
+    local remote_ver="$1"
+    local local_ver="$2"
+    [[ "$remote_ver" != "$local_ver" ]] && [[ "$(printf '%s\n%s\n' "$local_ver" "$remote_ver" | sort -V | tail -n 1)" == "$remote_ver" ]]
+}
+
+self_update() {
+    local mode="${1:-auto}"
+    local tmp_script="${BIN_LINK}.update.tmp"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        printf "${C_CYAN}[DRY-RUN]${C_RESET} Comprobar versión remota de yuuna-ui en %s (actual: v%s)\n" \
+            "$RAW_SCRIPT_URL" "$YUUNA_CLI_VERSION"
+        return 0
+    fi
+
+    mkdir -p "$BIN_DIR"
+    rm -f "$tmp_script"
+
+    if ! curl -fsSL --connect-timeout 5 --max-time 15 "$RAW_SCRIPT_URL" -o "$tmp_script" 2>/dev/null; then
+        rm -f "$tmp_script"
+        if [[ "$mode" == "manual" ]]; then
+            die "No se pudo conectar con el repositorio para comprobar actualizaciones de yuuna-ui."
+        fi
+        return 0
+    fi
+
+    if [[ ! -s "$tmp_script" ]] || ! bash -n "$tmp_script" >/dev/null 2>&1; then
+        rm -f "$tmp_script"
+        if [[ "$mode" == "manual" ]]; then
+            die "El script descargado no es válido o está incompleto."
+        fi
+        return 0
+    fi
+
+    local remote_version=""
+    remote_version=$(grep -m 1 '^readonly YUUNA_CLI_VERSION=' "$tmp_script" | cut -d'"' -f2 || true)
+
+    if [[ -z "$remote_version" ]]; then
+        rm -f "$tmp_script"
+        if [[ "$mode" == "manual" ]]; then
+            die "No se pudo determinar la versión remota de yuuna-ui."
+        fi
+        return 0
+    fi
+
+    if ! is_version_newer "$remote_version" "$YUUNA_CLI_VERSION"; then
+        rm -f "$tmp_script"
+        if [[ "$mode" == "manual" ]]; then
+            ok "yuuna-ui ya se encuentra en su versión más reciente (v$YUUNA_CLI_VERSION)."
+        fi
+        return 0
+    fi
+
+    info "¡Se ha encontrado una nueva versión de yuuna-ui (v$YUUNA_CLI_VERSION -> v$remote_version)!"
+    sleep 1
+    info "Actualizando ejecutable en $BIN_LINK..."
+    chmod 755 "$tmp_script"
+    if ! mv -f "$tmp_script" "$BIN_LINK"; then
+        rm -f "$tmp_script"
+        if [[ "$mode" == "manual" ]]; then
+            die "Error al actualizar el ejecutable en '$BIN_LINK'."
+        fi
+        warn "No se pudo actualizar '$BIN_LINK'. Continuando..."
+        return 0
+    fi
+    sleep 1
+    ok "¡yuuna-ui se ha actualizado correctamente a la versión v$remote_version!"
+    if [[ "$mode" == "auto" ]]; then
+        sleep 1
+        info "Continuando con la actualización de Open WebUI..."
+    fi
 }
 
 is_selinux_active() {
@@ -931,6 +1019,93 @@ cmd_backup_restore() {
     trap - EXIT
 }
 
+cmd_uninstall() {
+    if [[ "$PURGE" == true ]]; then
+        warn "¡ADVERTENCIA! Al usar --purge se borrarán TODOS los datos relacionados a Yuuna WebUI."
+        warn "Se eliminarán permanentemente:"
+        warn "  - Contenedor '$CONTAINER_NAME' e imágenes de Open WebUI en Podman"
+        warn "  - Todos tus chats, datos y respaldos en: $STORAGE_LOCATION"
+        warn "  - La CLI yuuna-ui"
+    else
+        warn "Estás a punto de desinstalar Yuuna WebUI de tu sistema."
+        warn "Se eliminarán el contenedor '$CONTAINER_NAME', las imágenes de Open WebUI y la CLI yuuna-ui."
+    fi
+
+    if [[ "$DRY_RUN" == false ]]; then
+        if [[ -r /dev/tty ]]; then
+            local confirm=""
+            if [[ "$PURGE" == true ]]; then
+                printf "¿Estás completamente seguro de eliminar TODO permanentemente? [s/N]: " >/dev/tty
+            else
+                printf "¿Deseas continuar con la desinstalación? [s/N]: " >/dev/tty
+            fi
+            read -r confirm </dev/tty || confirm="n"
+            if [[ ! "$confirm" =~ ^[sS]([iI])?$ && ! "$confirm" =~ ^[yY]([eE][sS])?$ ]]; then
+                info "Desinstalación cancelada por el usuario."
+                exit 0
+            fi
+        else
+            die "Se requiere una terminal interactiva para confirmar la desinstalación."
+        fi
+    fi
+
+    if podman container exists "$CONTAINER_NAME" 2>/dev/null; then
+        info "Deteniendo y eliminando el contenedor '$CONTAINER_NAME'..."
+        run_cmd podman rm -f "$CONTAINER_NAME"
+        ok "Contenedor '$CONTAINER_NAME' eliminado."
+    else
+        info "El contenedor '$CONTAINER_NAME' no existe (omitiendo)."
+    fi
+
+    local image_ids=""
+    image_ids=$(podman images --filter "reference=${IMAGE_REPO}*" -q 2>/dev/null | sort -u || true)
+    if [[ -n "$image_ids" ]]; then
+        info "Eliminando imágenes de Open WebUI en Podman..."
+        local img_id
+        while IFS= read -r img_id; do
+            [[ -n "$img_id" ]] && run_cmd podman rmi -f "$img_id"
+        done <<< "$image_ids"
+        ok "Imágenes de Open WebUI eliminadas."
+    fi
+
+    info "Limpiando imágenes huérfanas en Podman..."
+    run_cmd podman image prune -f
+
+    local remove_data=false
+    if [[ "$PURGE" == true ]]; then
+        remove_data=true
+    elif [[ -d "$STORAGE_LOCATION" ]]; then
+        if [[ "$DRY_RUN" == false ]]; then
+            local confirm_data=""
+            printf "¿Deseas eliminar también todos tus datos, chats y respaldos en %s? [s/N]: " "$STORAGE_LOCATION" >/dev/tty
+            read -r confirm_data </dev/tty || confirm_data="n"
+            if [[ "$confirm_data" =~ ^[sS]([iI])?$ || "$confirm_data" =~ ^[yY]([eE][sS])?$ ]]; then
+                remove_data=true
+            fi
+        else
+            printf "${C_CYAN}[DRY-RUN]${C_RESET} Preguntar interactivamente si se desea conservar o eliminar %s\n" "$STORAGE_LOCATION"
+        fi
+    fi
+
+    if [[ "$remove_data" == true ]]; then
+        if [[ -d "$STORAGE_LOCATION" ]]; then
+            info "Eliminando directorio de datos y respaldos ($STORAGE_LOCATION)..."
+            run_cmd rm -rf "$STORAGE_LOCATION"
+            ok "Datos y respaldos eliminados permanentemente."
+        fi
+    elif [[ -d "$STORAGE_LOCATION" ]]; then
+        info "Conservando tus datos y respaldos intactos en: $STORAGE_LOCATION"
+    fi
+
+    if [[ -f "$BIN_LINK" ]]; then
+        info "Eliminando la CLI yuuna-ui..."
+        run_cmd rm -f "$BIN_LINK"
+        ok "CLI yuuna-ui eliminada."
+    fi
+
+    ok "Yuuna WebUI se ha desinstalado correctamente. ¡Vuelve cuando quieras! <3"
+}
+
 main() {
     parse_args "$@"
     check_root
@@ -951,6 +1126,7 @@ main() {
         update)
             require_container_exists
             check_dependencies
+            self_update "auto"
             configure_environment
             deploy_container
             wait_for_healthy "$FINAL_PORT"
@@ -979,6 +1155,14 @@ main() {
         backup-restore)
             require_commands podman tar
             cmd_backup_restore
+            ;;
+        self-update)
+            require_commands curl
+            self_update "manual"
+            ;;
+        uninstall)
+            require_commands podman
+            cmd_uninstall
             ;;
         *)
             die "Acción desconocida: '$ACTION'"

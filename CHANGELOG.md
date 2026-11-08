@@ -2,6 +2,11 @@
 
 Todas las novedades y cambios notables de Yuuna WebUI se documentarán en este archivo.
 
+## [v2.1.0] - 07-11-2026
+### Añadido
+- **Auto-actualización integrada:** Ahora `yuuna-ui update` verifica automáticamente si existe una versión superior de `yuuna-ui` en el repositorio oficial y la actualiza antes de actualizar el contenedor de Open WebUI. También disponible por separado mediante `yuuna-ui self-update`.
+- **Modo de desinstalación:** Nuevo subcomando `yuuna-ui uninstall` para desinstalar limpiamente el contenedor, las imágenes de Open WebUI en Podman, incluyendo limpieza de imágenes huérfanas, y la CLI `yuuna-ui`.
+
 ## [v2.0.1] - 05-11-2026
 ### Mantenimiento y Correcciones
 - **Depuración del código fuente:** Limpieza de comentarios redundantes.
